@@ -1,24 +1,20 @@
 // YOUR CODE HERE:
 $(document).ready(function() {
-
+  fetch(display);
+  setInterval(function(){ fetch(display); }, 5000);
 });
 
 var fetch = function(callback) {
   $.get('https://api.parse.com/1/classes/chatterbox', function(data) {
-    callback(data);
+    callback(data.results);
   });
 };
 
-var display = function() {
-  var messages = [];
+var display = function(messages) {
   var message = '<div class="message"></div>';
   var name = '<div class="name"></div>';
   var text = '<div class="text"></div>';
   var timestamp = '<div class="timestamp"></div>';
-
-  fetch(function(data) {
-    messages.push(data.results);
-  });
 
   _(messages).each(function(msg) {
     var messageToAppend = $(message).append(
