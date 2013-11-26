@@ -17,7 +17,7 @@ body {
     border: solid #ddd;
     position: relative;
     border-width: 0 1px 1px 1px;
-    height: 100%;
+    min-height: 800px;
 }
 
 .main h1 {
@@ -72,7 +72,7 @@ body {
   padding: 10px;
   margin-top: 50px;
   font-weight: 800;
-  
+  border-bottom: 1px solid #C2C2C2;
 }
 
 .room:hover {
@@ -81,4 +81,24 @@ body {
 
 .room:visited {
   color: #7A1232;
+}
+
+.active {
+  background-color: white;
+}
+
+.addfriend {
+  text-decoration: none;
+  color: #0C0;
+  font-size: 15pt;
+  font-weight: 800;
+  padding-right: 5px;
+}
+
+.friend .name {
+  color: #01B;
+}
+
+.friend a {
+  color: #ECC;
 }

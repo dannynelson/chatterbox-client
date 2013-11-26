@@ -7,9 +7,9 @@ $(document).ready(function() {
       $('.messages').html('');
       display(data);
     });
-  }, 5000);
+  }, 3000);
 
-
+  // click handlers
   $('.submit').on('click', function(event) {
     event.preventDefault();
     var message = $('.sendBox').val();
@@ -17,11 +17,32 @@ $(document).ready(function() {
     $('.sendBox').val('');
   });
 
+  $('.allrooms').on('click', function(){
+    currentRoom = undefined;
+    fetch(function(data){
+      $('.messages').html('');
+      display(data);
+    });
+  });
+
   $('.rooms').on('click', '.room', function() {
     $('.active').removeClass('active');
     currentRoom = $(this).text();
-    $(this).addClass('.active');
-    $('.messages').html('');
+    $(this).addClass('active');
+    fetch(function(data){
+      $('.messages').html('');
+      display(data);
+    });
+  });
+
+  $('.messages').on('click', '.addfriend', function(event) {
+    event.preventDefault();
+    var friend = $(this).parent().find('.name').text();
+    if (!friends[friend]) {
+      friends[friend] = true;
+    } else {
+      delete friends[friend];
+    }
     fetch(function(data){
       $('.messages').html('');
       display(data);
@@ -33,10 +54,11 @@ $(document).ready(function() {
 var server = 'https://api.parse.com/1/classes/chatterbox';
 var rooms = {};
 var currentRoom;
+var friends = {};
 
 var sendMessage = function(message) {
   var data = {
-    roomname: "test",
+    roomname: currentRoom || "console.log",
     text: message,
     username: getQueryVariable("username")
   };
@@ -63,29 +85,44 @@ var display = function(messages) {
   var text = '<div class="text"></div>';
   var timestamp = '<div class="timestamp"></div>';
   var room = '<a href= "#" class="room"></a>';
+  var friendButton = '<a href="#" class="addfriend" title="Add friend">+</a>';
 
   for(var i = 0; i < 100; i++){
     // populate each individual chat
     var msg = messages[i];
     var messageToAppend;
     if (msg.roomname) {
-      msg.roomname = msg.roomname.length > 10 ? msg.roomname.slice(0, 10) + "..." : msg.roomname;
+      msg.roomname = msg.roomname.length > 15 ? msg.roomname.slice(0, 15) + "..." : msg.roomname;
     }
-    if(msg.text.length < 200 && msg.username.length < 50){
+    if( msg.text && msg.username && msg.text.length < 200 && msg.username.length < 50){
       if (currentRoom === undefined) {
-        messageToAppend = $(message).append(
+        $messageToAppend = $(message).append(
+          $(friendButton),
           $(name).text(msg.username),
           $(text).text(msg.text),
           $(timestamp).text($.timeago(msg.createdAt))
         );
-        $('.messages').append(messageToAppend);
+        if(friends[msg.username]){
+          $messageToAppend.addClass('friend');
+          $messageToAppend.find('.addfriend').text('-');
+        } else {
+          $messageToAppend.removeClass('friend');
+        }
+        $('.messages').append($messageToAppend);
       } else if (msg.roomname && msg.roomname.toLowerCase() === currentRoom) {
-        messageToAppend = $(message).append(
+        $messageToAppend = $(message).append(
+          $(friendButton),
           $(name).text(msg.username),
           $(text).text(msg.text),
           $(timestamp).text($.timeago(msg.createdAt))
         );
-        $('.messages').append(messageToAppend);
+        if(friends[msg.username]){
+          $messageToAppend.addClass('friend');
+          $messageToAppend.find('.addfriend').text('-');
+        } else {
+          $messageToAppend.removeClass('friend');
+        }
+        $('.messages').append($messageToAppend);
       }
     }
     // populate rooms
@@ -93,9 +130,14 @@ var display = function(messages) {
       rooms[msg.roomname] = true;
     }
   }
+
   $('.roomlist').html('');
   _(rooms).each(function(value, roomName){
-    $('.roomlist').append($(room).text(roomName));
+    var $node = $(room).text(roomName);
+    if(currentRoom == roomName){
+      $node.addClass('active');
+    }
+    $('.roomlist').append($node);
   });
 };
 
