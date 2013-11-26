@@ -47,8 +47,32 @@ body {
   width: 200px;
   height: 100%;
   right: -200px;
-  background-color: gray;
+  top: 0px;
+  background-color: #DEDEDE;
   position: absolute;
 }
 
+.room {
+  display: block;
+  padding: 10px;
+  border-bottom: 1px solid #C2C2C2;
+  text-decoration: none;
+  color: #7A1232;
+  text-transform: lowercase;
+  font-weight: 800;
+}
 
+.roomlabel {
+  padding: 10px;
+  margin-top: 50px;
+  font-weight: 800;
+  
+}
+
+.room:hover {
+  background-color: white;
+}
+
+.room:visited {
+  color: #7A1232;
+}
