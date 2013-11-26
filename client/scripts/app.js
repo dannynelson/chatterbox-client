@@ -1,41 +1,33 @@
 // YOUR CODE HERE:
 $(document).ready(function() {
-  fetch(display);
+  chatRoom.update();
 
   setInterval(function(){
-    fetch(function(data){
-      $('.messages').html('');
-      display(data);
-    });
+    chatRoom.update();
   }, 3000);
 
   // click handlers
   $('.submit').on('click', function(event) {
     event.preventDefault();
     var message = $('.sendBox').val();
-    sendMessage(message);
+    chatRoom.sendMessage(message);
     $('.sendBox').val('');
   });
 
   $('.allrooms').on('click', function(){
-    currentRoom = undefined;
-    fetch(function(data){
-      $('.messages').html('');
-      display(data);
-    });
+    chatRoom.currentRoom = undefined;
+    chatRoom.update();
   });
 
   $('.rooms').on('click', '.room', function() {
     $('.active').removeClass('active');
-    currentRoom = $(this).text();
+    chatRoom.currentRoom = $(this).text();
     $(this).addClass('active');
-    fetch(function(data){
-      $('.messages').html('');
-      display(data);
-    });
+    chatRoom.update();
   });
 
   $('.messages').on('click', '.addfriend', function(event) {
+    var friends = chatRoom.friends;
     event.preventDefault();
     var friend = $(this).parent().find('.name').text();
     if (!friends[friend]) {
@@ -43,105 +35,86 @@ $(document).ready(function() {
     } else {
       delete friends[friend];
     }
-    fetch(function(data){
-      $('.messages').html('');
-      display(data);
-    });
+    chatRoom.update();
   });
-
 });
 
-var server = 'https://api.parse.com/1/classes/chatterbox';
-var rooms = {};
-var currentRoom;
-var friends = {};
+var chatRoom = {};
+chatRoom.friends = {};
+chatRoom.server = 'https://api.parse.com/1/classes/chatterbox';
 
-var sendMessage = function(message) {
+chatRoom.sendMessage = function(message) {
   var data = {
-    roomname: currentRoom || "console.log",
+    roomname: chatRoom.currentRoom || "console.log",
     text: message,
     username: getQueryVariable("username")
   };
   $.ajax({
     type: 'POST',
-    url: server,
+    url: chatRoom.server,
     data: JSON.stringify(data),
     contentType: "application/json"
   });
 };
 
-var fetch = function(callback) {
-  $.get(server, { order: "-createdAt" }, function(data) {
-    callback(data.results);
+chatRoom.update = function(callback) {
+  $.get(chatRoom.server, { order: "-createdAt" }, function(data) {
+    $('.messages').html('');
+    chatRoom.display(data.results);
   });
 };
 
-var display = function(messages) {
-  messages.sort(function(a, b){
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-  var message = '<div class="message"></div>';
-  var name = '<div class="name"><</div>';
-  var text = '<div class="text"></div>';
-  var timestamp = '<div class="timestamp"></div>';
-  var room = '<a href= "#" class="room"></a>';
-  var friendButton = '<a href="#" class="addfriend" title="Add friend">+</a>';
+chatRoom.renderMsg = function(msg){
+  if(msg.roomname === chatRoom.currentRoom || chatRoom.currentRoom === undefined){
+    var $message = $('<div class="message"></div>');
 
-  for(var i = 0; i < 100; i++){
-    // populate each individual chat
-    var msg = messages[i];
-    var messageToAppend;
-    if (msg.roomname) {
-      msg.roomname = msg.roomname.length > 15 ? msg.roomname.slice(0, 15) + "..." : msg.roomname;
-    }
-    if( msg.text && msg.username && msg.text.length < 200 && msg.username.length < 50){
-      if (currentRoom === undefined) {
-        $messageToAppend = $(message).append(
-          $(friendButton),
-          $(name).text(msg.username),
-          $(text).text(msg.text),
-          $(timestamp).text($.timeago(msg.createdAt))
-        );
-        if(friends[msg.username]){
-          $messageToAppend.addClass('friend');
-          $messageToAppend.find('.addfriend').text('-');
-        } else {
-          $messageToAppend.removeClass('friend');
-        }
-        $('.messages').append($messageToAppend);
-      } else if (msg.roomname && msg.roomname.toLowerCase() === currentRoom) {
-        $messageToAppend = $(message).append(
-          $(friendButton),
-          $(name).text(msg.username),
-          $(text).text(msg.text),
-          $(timestamp).text($.timeago(msg.createdAt))
-        );
-        if(friends[msg.username]){
-          $messageToAppend.addClass('friend');
-          $messageToAppend.find('.addfriend').text('-');
-        } else {
-          $messageToAppend.removeClass('friend');
-        }
-        $('.messages').append($messageToAppend);
-      }
-    }
-    // populate rooms
-    if (/\w/.test(msg.roomname)) {
-      rooms[msg.roomname] = true;
-    }
+    if(chatRoom.friends[msg.username]) $message.addClass('friend');
+
+    $message.append(
+      $('<a href="#" class="addfriend" title="Add friend">+</a>'),
+      $('<div class="name"></div>').text(msg.username),
+      $('<div class="text"></div>').text(msg.text),
+      $('<div class="timestamp"></div>').text($.timeago(msg.createdAt))
+    );
+
+    $('.messages').append($message);
   }
+};
 
+chatRoom.renderRooms = function(rooms) {
   $('.roomlist').html('');
   _(rooms).each(function(value, roomName){
-    var $node = $(room).text(roomName);
-    if(currentRoom == roomName){
+    var $room = $('<a href="#" class="room"></a>');
+    var $node = $room.text(roomName);
+    if(chatRoom.currentRoom == roomName){
       $node.addClass('active');
     }
     $('.roomlist').append($node);
   });
 };
 
-function getQueryVariable(variable) {
+
+
+chatRoom.display = function(messages) {
+  var rooms = {};
+  for(var i = 0; i < 100; i++){
+    // populate each individual chat
+    var msg = messages[i];
+    if (msg.roomname) {
+      msg.roomname = msg.roomname.length > 15 ? msg.roomname.slice(0, 15) + "..." : msg.roomname;
+    }
+    if( msg.text && msg.username && msg.text.length < 200 && msg.username.length < 50){
+      chatRoom.renderMsg(msg);
+    }
+    // chatRoom.update rooms
+    if (/\w/.test(msg.roomname)) {
+      rooms[msg.roomname] = true;
+    }
+  }
+  chatRoom.renderRooms(rooms);
+};
+
+var getQueryVariable = function(variable) {
   var query = window.location.search.substring(1);
   var vars = query.split("&");
   for (var i=0;i<vars.length;i++) {
