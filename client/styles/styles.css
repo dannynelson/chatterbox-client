@@ -1,7 +1,12 @@
+html {
+    height: 100%;
+}
+
 body {
     background: #eee;
     padding: 0 25px;
     font-family: Helvetica;
+    height: 100%;
 }
 
 .main {
@@ -12,6 +17,7 @@ body {
     border: solid #ddd;
     position: relative;
     border-width: 0 1px 1px 1px;
+    height: 100%;
 }
 
 .main h1 {

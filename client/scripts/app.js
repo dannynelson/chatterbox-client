@@ -5,7 +5,7 @@ $(document).ready(function() {
   setInterval(function(){
     fetch(function(data){
       $('.messages').html('');
-      display(data, currentRoom);
+      display(data);
     });
   }, 5000);
 
@@ -19,17 +19,20 @@ $(document).ready(function() {
 
   $('.rooms').on('click', '.room', function() {
     $('.active').removeClass('active');
-    debugger;
     currentRoom = $(this).text();
     $(this).addClass('.active');
+    $('.messages').html('');
+    fetch(function(data){
+      $('.messages').html('');
+      display(data);
+    });
   });
 
 });
 
 var server = 'https://api.parse.com/1/classes/chatterbox';
 var rooms = {};
-rooms.all = true;
-var currentRoom = "all";
+var currentRoom;
 
 var sendMessage = function(message) {
   var data = {
@@ -65,25 +68,31 @@ var display = function(messages) {
     // populate each individual chat
     var msg = messages[i];
     var messageToAppend;
-    if (currentRoom === "all") {
-      messageToAppend = $(message).append(
-        $(name).text(msg.username),
-        $(text).text(msg.text),
-        $(timestamp).text($.timeago(msg.createdAt))
-      );
-      $('.messages').append(messageToAppend);
-    } else if (msg.roomname && msg.roomname.toLowerCase() === currentRoom) {
-      messageToAppend = $(message).append(
-        $(name).text(msg.username),
-        $(text).text(msg.text),
-        $(timestamp).text($.timeago(msg.createdAt))
-      );
-      $('.messages').append(messageToAppend);
+    if (msg.roomname) {
+      msg.roomname = msg.roomname.length > 10 ? msg.roomname.slice(0, 10) + "..." : msg.roomname;
+    }
+    if(msg.text.length < 200 && msg.username.length < 50){
+      if (currentRoom === undefined) {
+        messageToAppend = $(message).append(
+          $(name).text(msg.username),
+          $(text).text(msg.text),
+          $(timestamp).text($.timeago(msg.createdAt))
+        );
+        $('.messages').append(messageToAppend);
+      } else if (msg.roomname && msg.roomname.toLowerCase() === currentRoom) {
+        messageToAppend = $(message).append(
+          $(name).text(msg.username),
+          $(text).text(msg.text),
+          $(timestamp).text($.timeago(msg.createdAt))
+        );
+        $('.messages').append(messageToAppend);
+      }
     }
     // populate rooms
-    rooms[msg.roomname] = true;
+    if (/\w/.test(msg.roomname)) {
+      rooms[msg.roomname] = true;
+    }
   }
-  // debugger;
   $('.roomlist').html('');
   _(rooms).each(function(value, roomName){
     $('.roomlist').append($(room).text(roomName));
