@@ -1,20 +1,54 @@
 body {
     background: #eee;
-    text-align: center;
     padding: 0 25px;
+    font-family: Helvetica;
 }
 
-#main {
+.main {
     width: 500px;
     margin: auto;
-    text-align: left;
     background: white;
     padding: 50px 60px;
     border: solid #ddd;
+    position: relative;
     border-width: 0 1px 1px 1px;
 }
 
-#main h1 {
+.main h1 {
     margin-top: 0;
     font-size: 35px;
 }
+
+.message {
+  padding: 8px;
+}
+
+.name {
+  display: inline;
+  margin-right: 10px;
+  font-weight: 700;
+}
+
+.text {
+  display: inline;
+  word-wrap: break-word;
+  font-size: 12pt;
+}
+
+.sendBox {
+  width: 85%;
+}
+
+.timestamp {
+  color: gray;
+}
+
+.rooms {
+  width: 200px;
+  height: 100%;
+  right: -200px;
+  background-color: gray;
+  position: absolute;
+}
+
+
